@@ -8,7 +8,6 @@ import (
 	htgotts "github.com/hegedustibor/htgo-tts"
 	"github.com/hegedustibor/htgo-tts/voices"
 	"github.com/pedroosz/go-reddit-scrapper/parsers"
-	"github.com/pedroosz/go-reddit-scrapper/utils"
 )
 
 const BASE_FOLDER = "files/"
@@ -40,8 +39,6 @@ func CreateTextFile(title string, paragraphs []string) {
 			log.Fatal(err2)
 		}
 	}
-
-	utils.Log(title, "Arquivo de texto criado com sucesso")
 }
 
 func CreateAudioFile(title string, paragraphs []string) {
@@ -53,9 +50,6 @@ func CreateAudioFile(title string, paragraphs []string) {
 	for i := 0; i < len(smallerPhrases); i++ {
 		go func(phrase string, index int) {
 			speech.CreateSpeechFile(phrase, fmt.Sprint(index))
-
-			utils.Log(title, "Iniciando criação de audios.")
-			utils.Log(title, "Audio "+fmt.Sprint(index)+" criado")
 
 			done <- true
 		}(smallerPhrases[i], i)
