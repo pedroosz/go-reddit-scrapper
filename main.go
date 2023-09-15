@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/gocolly/colly"
-	"github.com/pedroosz/go-reddit-scrapper/audios"
-	"github.com/pedroosz/go-reddit-scrapper/texts"
+	"github.com/pedroosz/go-reddit-scrapper/operations"
+	"github.com/pedroosz/go-reddit-scrapper/parsers"
+	"github.com/pedroosz/go-reddit-scrapper/utils"
 )
 
 const BASE_URL = "https://old.reddit.com/"
@@ -23,16 +23,12 @@ func scrapTargetPost(title string, url string) {
 			allParagraphs = append(allParagraphs, h.Text)
 		})
 
-		fmt.Printf("=====================\n")
-		fmt.Printf("SCRAPPING CONCLUÍDO\n")
-		fmt.Printf("TITULO: %s\nURL: %s\nPARAGRAFOS: %d", title, url, len(allParagraphs))
-		fmt.Printf("=====================\n")
+		utils.Log("Parágrafos adquiridos", fmt.Sprint(len(allParagraphs)))
 
-		titleWithoutSpaces := strings.ReplaceAll(title, " ", "_")
-		titleWithoutSpacesAndSlashes := strings.ReplaceAll(titleWithoutSpaces, "/", "_")
+		normalizedTitle := parsers.NormalizeTitle(title)
 
-		texts.CreateFiles(titleWithoutSpacesAndSlashes, allParagraphs)
-		audios.CreateAudio(titleWithoutSpacesAndSlashes, allParagraphs)
+		operations.CreateTextFile(normalizedTitle, allParagraphs)
+		operations.CreateAudioFile(normalizedTitle, allParagraphs)
 	})
 
 	c.OnRequest(func(r *colly.Request) {
@@ -56,10 +52,7 @@ func main() {
 			title := h.ChildText("a.title")
 			url := h.ChildAttr("a.title", "href")
 
-			fmt.Printf("=====================\n")
-			fmt.Printf("POST ENCONTRADO")
-			fmt.Printf("TITULO: %s\nURL: %s", title, BASE_URL+url)
-			fmt.Printf("=====================\n")
+			utils.Log("Post encontrado", title)
 
 			scrapTargetPost(title, BASE_URL+url)
 		})
@@ -73,5 +66,5 @@ func main() {
 		fmt.Println("Received", r.StatusCode, r.Request.URL)
 	})
 
-	c.Visit("https://old.reddit.com/r/brdev/")
+	c.Visit("https://old.reddit.com/r/EuSouOBabaca/")
 }
