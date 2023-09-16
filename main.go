@@ -17,6 +17,11 @@ import (
 
 var wg sync.WaitGroup
 
+func createFiles(paragraphs []string, title string) {
+	operations.CreateTextFile(title, paragraphs)
+	operations.CreateAudioFile(title, paragraphs)
+}
+
 func parsePost(post entity.Post) {
 	defer wg.Done()
 	url := entity.URLForumPost("brdev", post)
@@ -24,8 +29,7 @@ func parsePost(post entity.Post) {
 		fullText := crawlers.PostCrawler(p)
 		paragraphs := strings.Split(fullText, "\n")
 		normalizedTitle := parsers.NormalizeTitle(post.Title)
-		operations.CreateTextFile(normalizedTitle, paragraphs)
-		operations.CreateAudioFile(normalizedTitle, paragraphs)
+		createFiles(paragraphs, normalizedTitle)
 	})
 }
 
