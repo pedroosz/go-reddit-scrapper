@@ -12,7 +12,6 @@ func NormalizeTitle(title string) string {
 
 func SplitPhrases(bigPhrases []string, maxWords int) []string {
 	var smallerPhrases []string
-
 	for _, phrase := range bigPhrases {
 		words := strings.Fields(phrase)
 		for i := 0; i < len(words); i += maxWords {
@@ -23,6 +22,5 @@ func SplitPhrases(bigPhrases []string, maxWords int) []string {
 			smallerPhrases = append(smallerPhrases, strings.Join(words[i:end], " "))
 		}
 	}
-
 	return smallerPhrases
 }
