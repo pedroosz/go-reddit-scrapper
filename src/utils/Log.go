@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -18,4 +19,9 @@ Configura e realiza o logging da mensagem.
 func Log(message string) {
 	configureFlags()
 	log.Println(message)
+}
+
+func Fatal(message string, err error) {
+	configureFlags()
+	log.Fatalf(fmt.Sprintf("%s - %s", message, err))
 }
