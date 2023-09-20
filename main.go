@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gocolly/colly"
-	"github.com/joho/godotenv"
 	browser "github.com/pedroosz/go-reddit-scrapper/src"
 	"github.com/pedroosz/go-reddit-scrapper/src/crawlers"
 	"github.com/pedroosz/go-reddit-scrapper/src/database"
@@ -20,6 +19,8 @@ import (
 
 var wg sync.WaitGroup
 var client *mongo.Client
+var minutes, forum = getParams()
+var interval = time.Duration(minutes) * time.Minute
 
 func getForum() string {
 	forum := os.Getenv("forum")
@@ -42,14 +43,6 @@ func getMinutes() int {
 	return intMinutes
 }
 
-func config() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		utils.Log("Não foi possível carregar o arquivo de configuração ambiente")
-		os.Exit(-1)
-	}
-}
-
 func getParams() (int, string) {
 
 	forum := getForum()
@@ -58,10 +51,7 @@ func getParams() (int, string) {
 }
 
 func main() {
-	config()
 	client = database.PrepareDatabase()
-	minutes, forum := getParams()
-	interval := time.Duration(minutes) * time.Minute
 	switch os.Getenv("mode") {
 	case "update":
 		for {
@@ -86,7 +76,6 @@ func main() {
 			utils.Log(fmt.Sprintf("Próxima Atualização em %s", interval.String()))
 			time.Sleep(interval)
 		}
-
 	default:
 		for {
 			startTime := time.Now()
@@ -99,5 +88,4 @@ func main() {
 			time.Sleep(interval)
 		}
 	}
-
 }

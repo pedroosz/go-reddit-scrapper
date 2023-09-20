@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"sync"
-	"time"
 
 	"github.com/pedroosz/go-reddit-scrapper/src/entity"
 	"github.com/pedroosz/go-reddit-scrapper/src/utils"
@@ -15,13 +14,14 @@ import (
 )
 
 func connect() *mongo.Client {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
-	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MONGO_URI")))
+	poolSize := uint64(10)
+	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(os.Getenv("MONGO_URI")), &options.ClientOptions{
+		MaxPoolSize: &poolSize,
+	})
 	if err != nil {
 		utils.Fatal("Erro ao conectar ao Mongo DB", err)
 	}
-	errPing := client.Ping(ctx, nil)
+	errPing := client.Ping(context.Background(), nil)
 	if errPing != nil {
 		utils.Fatal("Erro ao conectar ao Mongo DB", errPing)
 	}
