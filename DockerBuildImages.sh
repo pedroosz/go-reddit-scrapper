@@ -1,1 +1,1 @@
-docker build --no-cache -t reddit_crawler .
+docker build --no-cache -t goredditarchive .
