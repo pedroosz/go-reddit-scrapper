@@ -3,34 +3,40 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
+	"strconv"
 	"sync"
 	"time"
 
-	"github.com/gocolly/colly"
 	"github.com/joho/godotenv"
-	browser "github.com/pedroosz/go-reddit-scrapper/src"
-	"github.com/pedroosz/go-reddit-scrapper/src/crawlers"
-	"github.com/pedroosz/go-reddit-scrapper/src/entity"
-	"github.com/pedroosz/go-reddit-scrapper/src/operations"
+	"go.mongodb.org/mongo-driver/mongo"
+
+	"github.com/pedroosz/go-reddit-scrapper/src/database"
+	"github.com/pedroosz/go-reddit-scrapper/src/extractors"
 	"github.com/pedroosz/go-reddit-scrapper/src/utils"
 )
 
 var wg sync.WaitGroup
+var client *mongo.Client
 
-func createFiles(paragraphs []string, title string) {
-	operations.CreateTextFile(title, paragraphs)
-	operations.CreateAudioFile(title, paragraphs)
+func getForum() string {
+	forum := os.Getenv("forum")
+	if forum == "" {
+		utils.Fatal("Forum deve ser forencedio", nil)
+	}
+	return forum
 }
 
-func parsePost(post entity.Post) {
-	defer wg.Done()
-	url := entity.URLForumPost("EuSouOBabaca", post)
-	browser.Browser(url, func(p *colly.HTMLElement) {
-		completePost := crawlers.PostCrawler(p, post)
-		paragraphs := strings.Split(completePost.RawText, "\n")
-		createFiles(paragraphs, completePost.Title)
-	})
+func getMinutes() int {
+	minutes := os.Getenv("interval")
+	if minutes == "" {
+		utils.Fatal("Minutes deve ser fornecido", nil)
+	}
+	intMinutes, err := strconv.Atoi(minutes)
+
+	if err != nil {
+		utils.Fatal("Erro ao parsear minutos para inteiro", err)
+	}
+	return intMinutes
 }
 
 func config() {
@@ -41,18 +47,26 @@ func config() {
 	}
 }
 
+func getParams() (int, string) {
+
+	forum := getForum()
+	intMinutes := getMinutes()
+	return intMinutes, forum
+}
+
 func main() {
 	config()
-	start := time.Now()
-	browser.Browser(entity.URLForum("EuSouOBabaca"), func(h *colly.HTMLElement) {
-		posts := crawlers.PostsCrawler(h)
-		wg.Add(len(posts) - 1)
-		for i := 0; i < len(posts); i++ {
-			go parsePost(posts[i])
-		}
-	})
-	wg.Wait()
-	end := time.Now()
-	elapsed := end.Sub(start)
-	utils.Log(fmt.Sprintf("Script time: %f", elapsed.Seconds()))
+	client = database.PrepareDatabase()
+	minutes, forum := getParams()
+	interval := time.Duration(minutes) * time.Minute
+	for {
+		startTime := time.Now()
+		extractors.ExtractPagesOfForum(forum, &wg, client)
+		wg.Wait()
+		endTime := time.Now()
+		elapsedTime := endTime.Sub(startTime)
+		utils.Log(fmt.Sprintf("Extração Concluída! Levou %s", elapsedTime.String()))
+		utils.Log(fmt.Sprintf("Próxima Extração em %s", interval.String()))
+		time.Sleep(interval)
+	}
 }

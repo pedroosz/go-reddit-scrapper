@@ -1,0 +1,20 @@
+version: '3'
+services:
+  crawler_eusouobabaca:
+    build: .
+    container_name: reddit_crawler_create_posts_Eu_Sou_OBabaca
+    environment:
+      - forum=EuSouOBabaca
+      - interval=10
+    depends_on:
+      - mongodb
+  mongodb:
+    image: mongo:latest  
+    container_name: reddit_posts_storage
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=crawler  
+      - MONGO_INITDB_ROOT_PASSWORD=crawler
+    ports:
+      - "27017:27017" 
+    volumes:
+      - /home/backup:/data/db  
