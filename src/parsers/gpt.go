@@ -28,6 +28,10 @@ func GPTParse(message string) string {
 			},
 			{
 				Role:    chatgpt.ChatGPTModelRoleSystem,
+				Content: "Traduza o texto, caso ele esteja em outra lingua que não seja português.",
+			},
+			{
+				Role:    chatgpt.ChatGPTModelRoleSystem,
 				Content: "Utilize o sistema de codificação de caracteres UTF-8",
 			},
 			{
