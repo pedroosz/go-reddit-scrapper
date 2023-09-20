@@ -1,6 +1,11 @@
 package parsers
 
-import "strings"
+import (
+	"os"
+	"strings"
+
+	"github.com/pedroosz/go-reddit-scrapper/src/entity"
+)
 
 func NormalizeTitle(title string) string {
 	titleWithoutSpaces := strings.ReplaceAll(title, " ", "_")
@@ -23,4 +28,9 @@ func SplitPhrases(bigPhrases []string, maxWords int) []string {
 		}
 	}
 	return smallerPhrases
+}
+
+func ParseKind(post *entity.CompletePost) {
+	kind := os.Getenv("KIND")
+	post.Kind = kind
 }

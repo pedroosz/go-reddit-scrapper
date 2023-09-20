@@ -7,7 +7,6 @@ import (
 
 	"github.com/gocolly/colly"
 	"github.com/pedroosz/go-reddit-scrapper/src/entity"
-	"github.com/pedroosz/go-reddit-scrapper/src/parsers"
 	"github.com/pedroosz/go-reddit-scrapper/src/utils"
 )
 
@@ -28,7 +27,7 @@ func PostCrawler(e *colly.HTMLElement, post entity.Post) entity.CompletePost {
 	return entity.CompletePost{
 		RawText:      postText,
 		CreationDate: date,
-		Title:        parsers.NormalizeTitle(post.Title),
+		Title:        post.Title,
 		Up:           qttLikes,
 	}
 }

@@ -23,7 +23,7 @@ var minutes, forum = getParams()
 var interval = time.Duration(minutes) * time.Minute
 
 func getForum() string {
-	forum := os.Getenv("forum")
+	forum := os.Getenv("FORUM")
 	if forum == "" {
 		utils.Fatal("Forum deve ser forencedio", nil)
 	}
@@ -31,7 +31,7 @@ func getForum() string {
 }
 
 func getMinutes() int {
-	minutes := os.Getenv("interval")
+	minutes := os.Getenv("INTERVAL")
 	if minutes == "" {
 		utils.Fatal("Minutes deve ser fornecido", nil)
 	}
@@ -44,7 +44,6 @@ func getMinutes() int {
 }
 
 func getParams() (int, string) {
-
 	forum := getForum()
 	intMinutes := getMinutes()
 	return intMinutes, forum

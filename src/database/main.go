@@ -29,7 +29,7 @@ func connect() *mongo.Client {
 }
 
 func UpdatePost(oldPost *entity.CompletePost, newPost *entity.CompletePost, client *mongo.Client) error {
-	collection := client.Database(os.Getenv("DATABASE_NAME")).Collection(os.Getenv("forum"))
+	collection := client.Database(os.Getenv("DATABASE_NAME")).Collection(os.Getenv("FORUM"))
 	filter := bson.M{"url": oldPost.Url}
 	update := bson.M{
 		"$set": bson.M{
@@ -54,7 +54,7 @@ func UpdatePost(oldPost *entity.CompletePost, newPost *entity.CompletePost, clie
 }
 
 func MapPostsOnDatabase(client *mongo.Client, callback func(post *entity.CompletePost)) {
-	coll := client.Database(os.Getenv("DATABASE_NAME")).Collection(os.Getenv("forum"))
+	coll := client.Database(os.Getenv("DATABASE_NAME")).Collection(os.Getenv("FORUM"))
 	cursor, err := coll.Find(context.Background(), bson.M{})
 	if err != nil {
 		utils.Fatal("Erro ao tentar recuperar os arquivos do banco de dados", err)
@@ -85,7 +85,7 @@ func createCollectionForForum(name string, client *mongo.Client) {
 
 func PrepareDatabase() *mongo.Client {
 	client := connect()
-	forum := os.Getenv("forum")
+	forum := os.Getenv("FORUM")
 	collection, err := client.Database(os.Getenv("DATABASE_NAME")).ListCollectionNames(context.Background(), bson.M{
 		"name": forum,
 	})
@@ -100,7 +100,7 @@ func PrepareDatabase() *mongo.Client {
 }
 
 func PostExistsOnCollection(post entity.Post, client *mongo.Client) bool {
-	coll := client.Database(os.Getenv("DATABASE_NAME")).Collection(os.Getenv("forum"))
+	coll := client.Database(os.Getenv("DATABASE_NAME")).Collection(os.Getenv("FORUM"))
 
 	existingDoc := coll.FindOne(context.Background(), bson.M{
 		"url": post.Url,
@@ -110,6 +110,6 @@ func PostExistsOnCollection(post entity.Post, client *mongo.Client) bool {
 }
 
 func InsertPostsOnCollection(post entity.CompletePost, client *mongo.Client) {
-	coll := client.Database(os.Getenv("DATABASE_NAME")).Collection(os.Getenv("forum"))
+	coll := client.Database(os.Getenv("DATABASE_NAME")).Collection(os.Getenv("FORUM"))
 	coll.InsertOne(context.Background(), post)
 }

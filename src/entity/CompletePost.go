@@ -10,4 +10,5 @@ type CompletePost struct {
 	Up           int
 	CreationDate time.Time
 	Comments     []Comment
+	Kind         string
 }

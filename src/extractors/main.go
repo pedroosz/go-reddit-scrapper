@@ -12,25 +12,25 @@ import (
 	"github.com/pedroosz/go-reddit-scrapper/src/crawlers"
 	"github.com/pedroosz/go-reddit-scrapper/src/database"
 	"github.com/pedroosz/go-reddit-scrapper/src/entity"
+	"github.com/pedroosz/go-reddit-scrapper/src/parsers"
 	"github.com/pedroosz/go-reddit-scrapper/src/utils"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func ExtractPost(post entity.Post, wg *sync.WaitGroup, client *mongo.Client) {
-
-	url := entity.URLForumPost(os.Getenv("forum"), post)
+	defer wg.Done()
+	url := entity.URLForumPost(os.Getenv("FORUM"), post)
 	post.Url = url
 	if database.PostExistsOnCollection(post, client) {
-		wg.Done()
 		utils.Log(fmt.Sprintf("Post (%s) já foi parseado", post.Url))
 		return
 	}
 	utils.Log(fmt.Sprintf("Post (%s) não foi parseado", post.Url))
-	defer wg.Done()
 	browser.Browser(url, func(p *colly.HTMLElement) {
 		completePost := crawlers.PostCrawler(p, post)
 		completePost.Url = url
 		completePost.Comments = ExtratCommentsFromPost(url)
+		parsers.ParseKind(&completePost)
 		database.InsertPostsOnCollection(completePost, client)
 	})
 }

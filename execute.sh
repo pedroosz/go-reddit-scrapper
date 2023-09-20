@@ -1,4 +1,3 @@
 #!/bin/sh
-export forum=brdev
-export interval=2
+export $(cat .env | xargs)
 go run main.go
