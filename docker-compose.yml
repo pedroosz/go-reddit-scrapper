@@ -1,11 +1,30 @@
 version: '3'
 services:
   crawler_eusouobabaca:
-    build: .
+    image: reddit_crawler
     container_name: reddit_crawler_create_posts_Eu_Sou_OBabaca
     environment:
       - forum=EuSouOBabaca
-      - interval=10
+      - interval=20
+      - mode=crawler
+    depends_on:
+      - mongodb
+  crawler_brdev:
+    image: reddit_crawler
+    container_name: reddit_crawler_create_posts_brdev
+    environment:
+      - forum=brdev
+      - interval=12
+      - mode=crawler
+    depends_on:
+      - mongodb
+  update_brdev:
+    image: reddit_crawler
+    container_name: reddit_crawler_update_posts_brdev
+    environment:
+      - forum=brdev
+      - interval=15
+      - mode=update
     depends_on:
       - mongodb
   mongodb:

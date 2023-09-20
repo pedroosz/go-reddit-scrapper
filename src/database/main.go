@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/pedroosz/go-reddit-scrapper/src/entity"
@@ -25,6 +26,54 @@ func connect() *mongo.Client {
 		utils.Fatal("Erro ao conectar ao Mongo DB", errPing)
 	}
 	return client
+}
+
+func UpdatePost(oldPost *entity.CompletePost, newPost *entity.CompletePost, client *mongo.Client) error {
+	collection := client.Database(os.Getenv("DATABASE_NAME")).Collection(os.Getenv("forum"))
+	filter := bson.M{"url": oldPost.Url}
+	update := bson.M{
+		"$set": bson.M{
+			"url":          newPost.Url,
+			"rawText":      newPost.RawText,
+			"title":        newPost.Title,
+			"text":         newPost.Text,
+			"up":           newPost.Up,
+			"creationDate": newPost.CreationDate,
+		},
+	}
+	result, err := collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
+	}
+	if result.ModifiedCount == 0 {
+		utils.Log("Post " + oldPost.Url + " não foi atualizado")
+	} else {
+		utils.Log("Post " + oldPost.Url + " foi atualizado")
+	}
+	return nil
+}
+
+func MapPostsOnDatabase(client *mongo.Client, callback func(post *entity.CompletePost)) {
+	coll := client.Database(os.Getenv("DATABASE_NAME")).Collection(os.Getenv("forum"))
+	cursor, err := coll.Find(context.Background(), bson.M{})
+	if err != nil {
+		utils.Fatal("Erro ao tentar recuperar os arquivos do banco de dados", err)
+	}
+	defer cursor.Close(context.Background())
+	wg := sync.WaitGroup{}
+	for cursor.Next(context.Background()) {
+		var post entity.CompletePost
+		if err := cursor.Decode(&post); err != nil {
+			utils.Log("Erro ao tentar recuperar um post para atualização")
+			continue
+		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			callback(&post)
+		}()
+	}
+	wg.Wait()
 }
 
 func createCollectionForForum(name string, client *mongo.Client) {
