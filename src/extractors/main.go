@@ -3,6 +3,7 @@ package extractors
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
@@ -50,6 +51,9 @@ func ExtractCommentsFromContainer(containner *goquery.Selection) []entity.Commen
 		comment := entity.Comment{}
 		commentText := s.Find(".usertext-body .md")
 		comment.Text = commentText.First().Text()
+		if len(strings.TrimSpace(comment.Text)) == 0 {
+			return
+		}
 		child := s.Find(".child")
 		if len(child.Find(".usertext-body .md").First().Text()) == 0 {
 			comments = append(comments, comment)
