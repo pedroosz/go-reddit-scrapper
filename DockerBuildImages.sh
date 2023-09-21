@@ -1,1 +1,1 @@
-docker build --no-cache -t goredditarchive .
+docker build --no-cache -t bloiseleo/goredditarchive:latest .
