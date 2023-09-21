@@ -54,7 +54,6 @@ func main() {
 	switch os.Getenv("mode") {
 	case "update":
 		for {
-			startTime := time.Now()
 			database.MapPostsOnDatabase(client, func(post *entity.CompletePost) {
 				browser.Browser(post.Url, func(p *colly.HTMLElement) {
 					completePost := crawlers.PostCrawler(p, entity.Post{
@@ -69,10 +68,6 @@ func main() {
 					}
 				})
 			})
-			endTime := time.Now()
-			elapsedTime := endTime.Sub(startTime)
-			utils.Log(fmt.Sprintf("Atualização de Posts Concluída! Levou %s", elapsedTime.String()))
-			utils.Log(fmt.Sprintf("Próxima Atualização em %s", interval.String()))
 			time.Sleep(interval)
 		}
 	default:
