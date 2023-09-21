@@ -1,13 +1,11 @@
 package crawlers
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/gocolly/colly"
 	"github.com/pedroosz/go-reddit-scrapper/src/entity"
-	"github.com/pedroosz/go-reddit-scrapper/src/utils"
 )
 
 func PostCrawler(e *colly.HTMLElement, post entity.Post) entity.CompletePost {
@@ -16,12 +14,11 @@ func PostCrawler(e *colly.HTMLElement, post entity.Post) entity.CompletePost {
 	likes := e.DOM.Find(".midcol .score.likes")
 	date, err := time.Parse("02 Jan 2006", postDate.Text())
 	if err != nil {
-		utils.Log(fmt.Sprintf("Não foi possível parsear a data %s", postDate.Text()))
+		date = time.Now()
 	}
 	postText := fullPost.Text()
 	qttLikes, err := strconv.Atoi(likes.Text())
 	if err != nil {
-		utils.Log(fmt.Sprintf("Não foi possível parsear a quantidade de likes: %s", likes.Text()))
 		qttLikes = -1
 	}
 	return entity.CompletePost{

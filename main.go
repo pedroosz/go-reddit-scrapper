@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/gocolly/colly"
@@ -17,7 +15,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var wg sync.WaitGroup
 var client *mongo.Client
 var minutes, forum = getParams()
 var interval = time.Duration(minutes) * time.Minute
@@ -72,13 +69,7 @@ func main() {
 		}
 	default:
 		for {
-			startTime := time.Now()
-			extractors.ExtractPagesOfForum(forum, &wg, client)
-			wg.Wait()
-			endTime := time.Now()
-			elapsedTime := endTime.Sub(startTime)
-			utils.Log(fmt.Sprintf("Extração Concluída! Levou %s", elapsedTime.String()))
-			utils.Log(fmt.Sprintf("Próxima Extração em %s", interval.String()))
+			extractors.ExtractPagesOfForum(forum, client)
 			time.Sleep(interval)
 		}
 	}

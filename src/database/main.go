@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"sync"
 
 	"github.com/pedroosz/go-reddit-scrapper/src/entity"
 	"github.com/pedroosz/go-reddit-scrapper/src/utils"
@@ -41,14 +40,9 @@ func UpdatePost(oldPost *entity.CompletePost, newPost *entity.CompletePost, clie
 			"creationDate": newPost.CreationDate,
 		},
 	}
-	result, err := collection.UpdateOne(context.Background(), filter, update)
+	_, err := collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return err
-	}
-	if result.ModifiedCount == 0 {
-		utils.Log("Post " + oldPost.Url + " não foi atualizado")
-	} else {
-		utils.Log("Post " + oldPost.Url + " foi atualizado")
 	}
 	return nil
 }
@@ -60,20 +54,14 @@ func MapPostsOnDatabase(client *mongo.Client, callback func(post *entity.Complet
 		utils.Fatal("Erro ao tentar recuperar os arquivos do banco de dados", err)
 	}
 	defer cursor.Close(context.Background())
-	wg := sync.WaitGroup{}
 	for cursor.Next(context.Background()) {
 		var post entity.CompletePost
 		if err := cursor.Decode(&post); err != nil {
 			utils.Log("Erro ao tentar recuperar um post para atualização")
 			continue
 		}
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			callback(&post)
-		}()
+		callback(&post)
 	}
-	wg.Wait()
 }
 
 func createCollectionForForum(name string, client *mongo.Client) {

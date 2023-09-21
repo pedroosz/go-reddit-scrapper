@@ -1,10 +1,8 @@
 package extractors
 
 import (
-	"fmt"
 	"os"
 	"strings"
-	"sync"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
@@ -13,19 +11,15 @@ import (
 	"github.com/pedroosz/go-reddit-scrapper/src/database"
 	"github.com/pedroosz/go-reddit-scrapper/src/entity"
 	"github.com/pedroosz/go-reddit-scrapper/src/parsers"
-	"github.com/pedroosz/go-reddit-scrapper/src/utils"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func ExtractPost(post entity.Post, wg *sync.WaitGroup, client *mongo.Client) {
-	defer wg.Done()
+func ExtractPost(post entity.Post, client *mongo.Client) {
 	url := entity.URLForumPost(os.Getenv("FORUM"), post)
 	post.Url = url
 	if database.PostExistsOnCollection(post, client) {
-		utils.Log(fmt.Sprintf("Post (%s) já foi parseado", post.Url))
 		return
 	}
-	utils.Log(fmt.Sprintf("Post (%s) não foi parseado", post.Url))
 	browser.Browser(url, func(p *colly.HTMLElement) {
 		completePost := crawlers.PostCrawler(p, post)
 		completePost.Url = url
@@ -35,12 +29,11 @@ func ExtractPost(post entity.Post, wg *sync.WaitGroup, client *mongo.Client) {
 	})
 }
 
-func ExtractPagesOfForum(forum string, wg *sync.WaitGroup, client *mongo.Client) {
+func ExtractPagesOfForum(forum string, client *mongo.Client) {
 	browser.Browser(entity.URLForum(forum), func(h *colly.HTMLElement) {
 		posts := crawlers.PostsCrawler(h)
-		wg.Add(len(posts))
 		for i := 0; i < len(posts); i++ {
-			go ExtractPost(posts[i], wg, client)
+			ExtractPost(posts[i], client)
 		}
 	})
 }
@@ -67,12 +60,10 @@ func ExtractCommentsFromContainer(containner *goquery.Selection) []entity.Commen
 
 func ExtractAllComments(urlAll string) []entity.Comment {
 	var comments []entity.Comment
-	utils.Log("Extraindo comentários de " + urlAll)
 	browser.Browser(urlAll, func(h *colly.HTMLElement) {
 		commentArea := h.DOM.Find(".commentarea")
 		comments = ExtractCommentsFromContainer(commentArea)
 	})
-	utils.Log("Comentários de " + urlAll + " extraídos")
 	return comments
 }
 
@@ -81,11 +72,9 @@ func ExtratCommentsFromPost(url string) []entity.Comment {
 	browser.Browser(url, func(h *colly.HTMLElement) {
 		linkToSeeAllComments, exists := h.DOM.Find(".panestack-title .title-button").Attr("href")
 		if !exists {
-			utils.Log("Link para comentários não existe - Realizando extração na página atual")
 			comments = ExtractAllComments(url)
 			return
 		}
-		utils.Log("Link para comentários existe! Começando a realizar extração na página com todos os comentários")
 		comments = ExtractAllComments(entity.URLBaseReddit(linkToSeeAllComments))
 	})
 	return comments
